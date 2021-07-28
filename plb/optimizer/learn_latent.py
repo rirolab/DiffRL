@@ -171,7 +171,7 @@ def learn_latent(env, path, args):
         print("Loss: ",total_loss/batch_cnt)
     print("Total Average Loss:",total_loss/batch_cnt)
     torch.save(model.state_dict(),"pretrain_model/weight_after_lr2e-5.pth")
-
+    
         
 
         

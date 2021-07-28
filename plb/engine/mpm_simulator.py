@@ -290,11 +290,30 @@ class MPMSimulator:
                     C[i, j, k] = self.C[f, i][j, k]
 
     @ti.kernel
-    def readframe_grad(self,f:ti.i32, x_grad: ti.ext_arr(), v_grad: ti.ext_arr()):
+    def readframe_grad(self,
+                       f:ti.i32,
+                       x_grad: ti.ext_arr(),
+                       v_grad: ti.ext_arr(),
+                       F_grad: ti.ext_arr(),
+                       C_grad: ti.ext_arr()):
         for i in range(self.n_particles):
             for j in ti.static(range(self.dim)):
                 x_grad[i,j] = self.x.grad[f,i][j]
                 v_grad[i,j] = self.v.grad[f,i][j]
+                for k in ti.static(range(self.dim)):
+                    F_grad[i,j,k] s= self.F.grad[f,i][j,k]
+                    C_grad[i,j,k] = self.C.grad[f,i][j,k]
+
+    @ti.kernel
+    def readprimitives_grad(self,
+                            f:ti.i32,
+                            p_pos_grad: ti.ext_arr(),
+                            v_grad:ti.ext_arr(),
+                            w_grad:ti.ext_arr()):
+        for i in range(self.n_primitive):
+            for j in range(3):
+                p_pos_grad[i,j] = 
+                    
 
     @ti.kernel
     def setframe(self, f:ti.i32, x: ti.ext_arr(), v: ti.ext_arr(), F: ti.ext_arr(), C: ti.ext_arr()):
@@ -305,6 +324,21 @@ class MPMSimulator:
                 for k in ti.static(range(self.dim)):
                     self.F[f, i][j, k] = F[i, j, k]
                     self.C[f, i][j, k] = C[i, j, k]
+
+    @ti.kernel
+    def setframe_grad(self,
+                      f:ti.i32,
+                      x_grad: ti.ext_arr(),
+                      v_grad: ti.ext_arr(),
+                      F_grad: ti.ext_arr(),
+                      C_grad: ti.ext_arr()):
+        for i in range(self.n_particles):
+            for j in range(ti.static(range(self.dim))):
+                self.x.grad[f,i][j] = x_grad[i,j]
+                self.v.grad[f,i][j] = v_grad[i,j]
+                for k in ti.static(range(self.dim)):
+                    self.F.grad[f,i][j,k] = F_grad[i,j,k]
+                    self.C.grad[f,i][j,k] = C_grad[i,j,k]
 
     @ti.kernel
     def copyframe(self, source: ti.i32, target: ti.i32):
@@ -335,9 +369,12 @@ class MPMSimulator:
     def get_state_grad(self,f):
         x_grad = np.zeros((self.n_particles,self.dim), dtype = np.float64)
         v_grad = np.zeros((self.n_particles,self.dim), dtype = np.float64)
+        F_grad = np.zeros((self.n_particles,self.dim,self.dim),dtype = np.float64)
+        C_grad = np.zeros((self.n_particles,self.dim,self.dim),dtype = np.float64)
         primitive_pos_grad = np.zeros((self.n_primitive,self.dim), dtype = np.float64)
         primitive_rot_grad = np.zeros((self.n_primitive,self.dim+1), dtype = np.float64)
-        self.readframe_grad(f,x_grad,v_grad)
+        self.readframe_grad(f,x_grad,v_grad,F_grad,C_grad)
+        self.readprimitives_grad(f,primitive_pos_grad,primitive_rot_grad)
         for i,primitive in enumerate(self.primitives):
             primitive_pos_grad[i] = primitive.get_pos_grad()
             primitive_rot_grad[i] = primitive.get_rot_grad()

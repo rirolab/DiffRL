@@ -8,7 +8,7 @@ from .losses import Loss, StateLoss, ChamferLoss, EMDLoss
 ti.init(arch=ti.gpu, debug=False, fast_math=True)
 
 @ti.data_oriented
-class TaichiEnv:
+class TaichiEnv():
     def __init__(self, cfg, loss_fn=Loss,nn=False, loss=True):
         """
         A taichi env builds scene according the configuration and the set of manipulators
@@ -118,21 +118,31 @@ class TaichiEnv:
         is_copy = np.load(filename+'_is_copy.npz')['is_copy']
         return {'state':state,'softness':softness,'is_copy':is_copy}
 
-    def set_state(self, state, softness, is_copy):
-        self.simulator.cur = 0
-        self.simulator.set_state(0, state)
+    def set_state(self, state, softness, is_copy,cur=0):
+        self.simulator.cur = cur
+        self.simulator.set_state(cur, state)
         self.primitives.set_softness(softness)
         self._is_copy = is_copy
         if self.loss:
             self.loss.reset()
             self.loss.clear()
 
+    def set_softness(self,softness):
+        self.softness = softness
+
     def set_target(self,target):
         self.loss.set_target(target)
 
-    def get_state_grad(self):
-        x_grad,v_grad,_, _ = self.simulator.get_state_grad(0)
-        return x_grad, v_grad
+    def set_state_grad(self,cur,grad):
+        self.simulator.set_state_grad(cur,grad)
+
+    def backprop(self,end_cur,start_cur):
+        # TODO: @EE-LiuYunhao Implement backward method of simulator
+        pass
+
+    def get_state_grad(self,cur):
+        x_grad,v_grad,F_grad, C_grad = self.simulator.get_state_grad(cur)
+        return x_grad, v_grad, F_grad, C_grad
 
     def get_x(self):
         return self.simulator.get_x_nokernel()
