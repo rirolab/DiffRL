@@ -84,6 +84,21 @@ class TaichiEnv():
             action = np.array(action)
         self.simulator.step(is_copy=self._is_copy, action=action)
 
+    def backprop(self, end_cur:int, start_cur:int) -> None:
+        """ The backward propagating method for env.step()
+
+        The proagating starts from the end_cur substep, towards the start_cur substep. 
+        By using this method, the caller can explicitly propagate the gradient without
+        using taichi.Tape(). 
+
+        :param end_cur: the substep from which the gradient is propagated
+        :param start_cur: the substep till which the gradient is propagated
+        :return None
+        """
+        for s in range(end_cur, start_cur, -1):
+            self.simulator.substep_grad(s)
+
+
     def compute_loss(self,copy_grad=True,decay=1):
         assert self.loss is not None
         if self._is_copy:
@@ -136,9 +151,6 @@ class TaichiEnv():
     def set_state_grad(self,cur,grad):
         self.simulator.set_state_grad(cur,grad)
 
-    def backprop(self,end_cur,start_cur):
-        # TODO: @EE-LiuYunhao Implement backward method of simulator
-        pass
 
     def get_state_grad(self,cur):
         x_grad,v_grad,F_grad, C_grad = self.simulator.get_state_grad(cur)

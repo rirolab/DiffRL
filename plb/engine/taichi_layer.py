@@ -1,11 +1,10 @@
-import numpy as np
+from plb.engine.taichi_env import TaichiEnv
 import torch
-import torch.nn as nn
 
 
 class TaichiLayer(torch.autograd.Function):
     @staticmethod
-    def forward(ctx,taichi_env,state,action,cur=None):
+    def forward(ctx, taichi_env: TaichiEnv, state, action, cur=None):
         start_cur = taichi_env.simulator.cur if cur == None else cur
         taichi_env.set_state(state.numpy(),taichi_env.softness,False,start_cur)
         taichi_env.step(action=action.numpy())
