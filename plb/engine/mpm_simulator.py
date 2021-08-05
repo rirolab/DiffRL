@@ -305,30 +305,6 @@ class MPMSimulator:
                     C_grad[i,j,k] = self.C.grad[f,i][j,k]
 
     @ti.kernel
-    def readprimitives_grad(self,
-                            f:ti.i32,
-                            p_grad: ti.ext_arr(),
-                            v_grad:ti.ext_arr(),
-                            r_grad:ti.ext_arr(),
-                            w_grad:ti.ext_arr()):
-        for i in range(self.n_primitive):
-            p_grad[i,0] = self.primitives[i].position.grad[0]
-            p_grad[i,1] = self.primitives[i].position.grad[1]
-            p_grad[i,2] = self.primitives[i].position.grad[2]
-            v_grad[i,0] = self.primitives[i].v.grad[0]
-            v_grad[i,1] = self.primitives[i].v.grad[1]
-            v_grad[i,2] = self.primitives[i].v.grad[2]
-            r_grad[i,0] = self.primitives[i].rotation.grad[0]
-            r_grad[i,1] = self.primitives[i].rotation.grad[1]
-            r_grad[i,2] = self.primitives[i].rotation.grad[2]
-            r_grad[i,3] = self.primitives[i].rotation.grad[3]
-            w_grad[i,0] = self.primitives[i].w.grad[0]
-            w_grad[i,1] = self.primitives[i].w.grad[1]
-            w_grad[i,2] = self.primitives[i].w.grad[2]
-
-
-
-    @ti.kernel
     def setframe(self, f:ti.i32, x: ti.ext_arr(), v: ti.ext_arr(), F: ti.ext_arr(), C: ti.ext_arr()):
         for i in range(self.n_particles):
             for j in ti.static(range(self.dim)):
@@ -352,30 +328,6 @@ class MPMSimulator:
                 for k in ti.static(range(self.dim)):
                     self.F.grad[f,i][j,k] = F_grad[i,j,k]
                     self.C.grad[f,i][j,k] = C_grad[i,j,k]
-
-    @ti.kernel
-    def setkernel_grad(
-        self,
-        f:ti.i32,
-        p_grad: ti.ext_arr(),
-        v_grad: ti.ext_arr(),
-        r_grad: ti.ext_arr(),
-        w_grad: ti.ext_arr()):
-        for i in range(self.n_primitives):
-            self.primitives[i].position.grad[0] = p_grad[i,0]
-            self.primitives[i].position.grad[1] = p_grad[i,1]
-            self.primitives[i].position.grad[2] = p_grad[i,2]
-            self.primitives[i].v.grad[0] = v_grad[i,0]
-            self.primitives[i].v.grad[1] = v_grad[i,1]
-            self.primitives[i].v.grad[2] = v_grad[i,2]
-            self.primitives[i].rotation.grad[0] = r_grad[i,0]
-            self.primitives[i].rotation.grad[1] = r_grad[i,1]
-            self.primitives[i].rotation.grad[2] = r_grad[i,2]
-            self.primitives[i].rotation.grad[3] = r_grad[i,3]
-            self.primitives[i].w.grad[0] = w_grad[i,0]
-            self.primitives[i].w.grad[1] = w_grad[i,1]
-            self.primitives[i].w.grad[2] = w_grad[i,2]
-
 
     @ti.kernel
     def copyframe(self, source: ti.i32, target: ti.i32):
@@ -408,19 +360,26 @@ class MPMSimulator:
         v_grad = np.zeros((self.n_particles,self.dim), dtype = np.float64)
         F_grad = np.zeros((self.n_particles,self.dim,self.dim),dtype = np.float64)
         C_grad = np.zeros((self.n_particles,self.dim,self.dim),dtype = np.float64)
-        primitive_pos_grad = np.zeros((self.n_primitive,self.dim), dtype = np.float64)
-        primitive_rot_grad = np.zeros((self.n_primitive,self.dim+1), dtype = np.float64)
         self.readframe_grad(f,x_grad,v_grad,F_grad,C_grad)
-        self.readprimitives_grad(f,primitive_pos_grad,primitive_rot_grad)
-        for i,primitive in enumerate(self.primitives):
-            primitive_pos_grad[i] = primitive.get_pos_grad()
-            primitive_rot_grad[i] = primitive.get_rot_grad()
-        return x_grad, v_grad, primitive_pos_grad, primitive_rot_grad
+        out = [x_grad,v_grad,F_grad,C_grad]
+        for i in self.primitives:
+            out.append(i.get_state_grad(f))
+        return out
+
+    def get_current_state_grad(self):
+        return self.get_state_grad(self.cur)
 
     def set_state(self, f, state):
         self.setframe(f, *state[:4])
         for s, i in zip(state[4:], self.primitives):
             i.set_state(f, s)
+
+    # SImilar to state state grad is a list: 
+    # [x_grad, v_grad, F_grad, C_grad, p1_state_grad,..,pn_state_grad]
+    def set_state_grad(self,f, state_grad):
+        self.setframe_grad(f,*state_grad[:4])
+        for sg, i in zip(state_grad[4:],self.primitives):
+            i.set_state_grad(f,sg)
 
     @ti.kernel
     def reset_kernel(self, x:ti.ext_arr()):

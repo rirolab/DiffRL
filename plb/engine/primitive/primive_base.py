@@ -129,26 +129,58 @@ class Primitive:
     @ti.kernel
     def get_state_kernel(self, f: ti.i32, controller: ti.ext_arr()):
         for j in ti.static(range(3)):
-            controller[j] = self.position[f][j]
+            controller[j*3] = self.position[f][j]
+            controller[j*3+1] = self.v[f][j]
+            controller[j*3+2] = self.w[f][j]
         for j in ti.static(range(4)):
-            controller[j+self.dim] = self.rotation[f][j]
+            controller[j+self.dim*3] = self.rotation[f][j]
+
+    @ti.kernel
+    def get_state_grad_kernel(self,f:ti.i32, controller_grad: ti.ext_arr()):
+        for j in ti.static(range(3)):
+            controller_grad[j*3] = self.position.grad[f][j]
+            controller_grad[j*3+1] = self.v.grad[f][j]
+            controller_grad[j*3+2] = self.w.grad[f][j]
+        for j in ti.static(range(4)):
+            controller_grad[j+self.dim*3] = self.rotation.grad[f][j]
 
     @ti.kernel
     def set_state_kernel(self, f: ti.i32, controller: ti.ext_arr()):
         for j in ti.static(range(3)):
-            self.position[f][j] = controller[j]
+            self.position[f][j] = controller[j*3]
+            self.v[f][j] = controller[j*3+1]
+            self.w[f][j] = controller[j*3+2]
         for j in ti.static(range(4)):
-            self.rotation[f][j] = controller[j+self.dim]
+            self.rotation[f][j] = controller[j+self.dim*3]
+
+    @ti.kernel
+    def set_state_grad_kernel(self,f:ti.i32, controller: ti.ext_arr()):
+        for j in ti.static(range(3)):
+            self.position.grad[f][j] = controller[j*3]
+            self.v.grad[f][j] = controller[j*3+1]
+            self.w.grad[f][j] = controller[j*3+2]
+        for j in ti.static(range(4)):
+            self.rotation.grad[f][j] = controller[j+self.dim*3]
 
     def get_state(self, f):
-        out = np.zeros((7), dtype=np.float64)
+        out = np.zeros((13), dtype=np.float64)
         self.get_state_kernel(f, out)
+        return out
+
+    def get_state_grad(self,f):
+        out = np.zeros((13), dtype=np.float64)
+        self.get_state_grad_kernel(f,out)
         return out
 
     def set_state(self, f, state):
         ss = self.get_state(f)
         ss[:len(state)] = state
         self.set_state_kernel(f, ss)
+
+    def set_state_grad(self,f,state_grad):
+        ss_grad = self.get_state_grad(f)
+        ss_grad[:len(state_grad)] = state_grad
+        self.set_state_kernel(f,ss_grad)
 
     @property
     def init_state(self):

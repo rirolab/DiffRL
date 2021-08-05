@@ -155,8 +155,8 @@ class TaichiEnv():
 
 
     def get_state_grad(self,cur):
-        x_grad,v_grad,F_grad, C_grad = self.simulator.get_state_grad(cur)
-        return x_grad, v_grad, F_grad, C_grad
+        state_grad = self.simulator.get_state_grad(cur)
+        return state_grad
 
     def get_x(self):
         return self.simulator.get_x_nokernel()
