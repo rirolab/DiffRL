@@ -301,19 +301,32 @@ class MPMSimulator:
                 x_grad[i,j] = self.x.grad[f,i][j]
                 v_grad[i,j] = self.v.grad[f,i][j]
                 for k in ti.static(range(self.dim)):
-                    F_grad[i,j,k] s= self.F.grad[f,i][j,k]
+                    F_grad[i,j,k] = self.F.grad[f,i][j,k]
                     C_grad[i,j,k] = self.C.grad[f,i][j,k]
 
     @ti.kernel
     def readprimitives_grad(self,
                             f:ti.i32,
-                            p_pos_grad: ti.ext_arr(),
+                            p_grad: ti.ext_arr(),
                             v_grad:ti.ext_arr(),
+                            r_grad:ti.ext_arr(),
                             w_grad:ti.ext_arr()):
         for i in range(self.n_primitive):
-            for j in range(3):
-                p_pos_grad[i,j] = 
-                    
+            p_grad[i,0] = self.primitives[i].position.grad[0]
+            p_grad[i,1] = self.primitives[i].position.grad[1]
+            p_grad[i,2] = self.primitives[i].position.grad[2]
+            v_grad[i,0] = self.primitives[i].v.grad[0]
+            v_grad[i,1] = self.primitives[i].v.grad[1]
+            v_grad[i,2] = self.primitives[i].v.grad[2]
+            r_grad[i,0] = self.primitives[i].rotation.grad[0]
+            r_grad[i,1] = self.primitives[i].rotation.grad[1]
+            r_grad[i,2] = self.primitives[i].rotation.grad[2]
+            r_grad[i,3] = self.primitives[i].rotation.grad[3]
+            w_grad[i,0] = self.primitives[i].w.grad[0]
+            w_grad[i,1] = self.primitives[i].w.grad[1]
+            w_grad[i,2] = self.primitives[i].w.grad[2]
+
+
 
     @ti.kernel
     def setframe(self, f:ti.i32, x: ti.ext_arr(), v: ti.ext_arr(), F: ti.ext_arr(), C: ti.ext_arr()):
@@ -339,6 +352,30 @@ class MPMSimulator:
                 for k in ti.static(range(self.dim)):
                     self.F.grad[f,i][j,k] = F_grad[i,j,k]
                     self.C.grad[f,i][j,k] = C_grad[i,j,k]
+
+    @ti.kernel
+    def setkernel_grad(
+        self,
+        f:ti.i32,
+        p_grad: ti.ext_arr(),
+        v_grad: ti.ext_arr(),
+        r_grad: ti.ext_arr(),
+        w_grad: ti.ext_arr()):
+        for i in range(self.n_primitives):
+            self.primitives[i].position.grad[0] = p_grad[i,0]
+            self.primitives[i].position.grad[1] = p_grad[i,1]
+            self.primitives[i].position.grad[2] = p_grad[i,2]
+            self.primitives[i].v.grad[0] = v_grad[i,0]
+            self.primitives[i].v.grad[1] = v_grad[i,1]
+            self.primitives[i].v.grad[2] = v_grad[i,2]
+            self.primitives[i].rotation.grad[0] = r_grad[i,0]
+            self.primitives[i].rotation.grad[1] = r_grad[i,1]
+            self.primitives[i].rotation.grad[2] = r_grad[i,2]
+            self.primitives[i].rotation.grad[3] = r_grad[i,3]
+            self.primitives[i].w.grad[0] = w_grad[i,0]
+            self.primitives[i].w.grad[1] = w_grad[i,1]
+            self.primitives[i].w.grad[2] = w_grad[i,2]
+
 
     @ti.kernel
     def copyframe(self, source: ti.i32, target: ti.i32):

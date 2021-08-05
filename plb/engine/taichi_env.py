@@ -148,6 +148,8 @@ class TaichiEnv():
     def set_target(self,target):
         self.loss.set_target(target)
 
+    # Here gradient follows the same convention as frame
+    # Here assume gradient is a list: [x_grad,v_grad,F_grad,C_grad,p1_state,..,pn_state]
     def set_state_grad(self,cur,grad):
         self.simulator.set_state_grad(cur,grad)
 
