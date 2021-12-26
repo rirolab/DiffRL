@@ -1,14 +1,13 @@
-import taichi
 import numpy as np
-import torch
-import gym
-from plb import envs
 import argparse
 import os
-import copy
 
+from plb.algorithms.logger import Logger
 from plb.algorithms.TD3 import utils
 from plb.algorithms.TD3 import TD3
+from plb.engine import taichi_env
+from plb.envs import make
+from plb.engine.losses.chamfer_loss import ChamferLoss
 
 
 # Runs policy for X episodes and returns average reward
@@ -46,9 +45,10 @@ def eval_policy(policy, eval_env, seed, eval_episodes=10):
     print("---------------------------------------")
     return avg_reward, ep_reward/eval_episodes, ep_iou/eval_episodes, ep_last_iou/eval_episodes
 
-
-def train_td3(env, path, logger, old_args):
+def parse_argument(externalArgs):
     parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", default="")
+    parser.add_argument("--srl", action='store_true', default=False)
     parser.add_argument("--policy", default="TD3")                  # Policy name (TD3, DDPG or OurDDPG)
     parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=2500, type=int)# Time steps initial random policy is used
@@ -64,14 +64,21 @@ def train_td3(env, path, logger, old_args):
     parser.add_argument("--save_model", action="store_true")        # Save model and optimizer parameters
     parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
     parser.add_argument("--model_name", default="")
-
     args, _ = parser.parse_known_args()
-    args.max_timesteps = old_args.num_steps
 
-    if len(args.model_name) == 0:
-        args.model_name = old_args.model_name
+    if externalArgs is not None and hasattr(externalArgs, 'num_steps'):
+        args.max_timesteps = externalArgs.num_steps
+    if externalArgs is not None and hasattr(externalArgs, 'srl'):
+        args.srl |= externalArgs.srl
+    if len(args.exp_name) == 0 and externalArgs is not None and hasattr(externalArgs, 'exp_name'):
+        args.exp_name = externalArgs.exp_name
+    if len(args.model_name) == 0 and externalArgs is not None and hasattr(externalArgs, 'model_name'):
+        args.model_name = externalArgs.model_name
     args.discount = float(args.gamma)
 
+
+def train_td3(env, path, logger, old_args):
+    args = parse_argument(externalArgs=old_args)
     log_path = path
     os.makedirs(log_path, exist_ok=True)
 
@@ -88,8 +95,8 @@ def train_td3(env, path, logger, old_args):
         "tau": args.tau,
         "n_particles":n_particles,
         "n_layers":5,
-        "enable_latent":old_args.srl,
-        "model_name":old_args.model_name
+        "enable_latent":args.srl,
+        "model_name":args.model_name
     }
 
     # Initialize policy
@@ -122,7 +129,7 @@ def train_td3(env, path, logger, old_args):
     iou_buffer = np.zeros((runs,1010))
     if not os.path.exists('loggings'):
         os.mkdir('loggings')
-    logging_file = open('loggings/{}_output.txt'.format(old_args.exp_name),'w')
+    logging_file = open('loggings/{}_output.txt'.format(args.exp_name),'w')
     try:
         for iter in range(runs):
             # Use Copied Policy for parameter reset
@@ -191,7 +198,30 @@ def train_td3(env, path, logger, old_args):
             os.mkdir("ious")
         if not os.path.exists("rewards"):
             os.mkdir("rewards")
-        np.save('ious/'+old_args.exp_name+'_ious.npy',iou_buffer)
-        np.save('rewards/'+old_args.exp_name+'_rewards.npy',reward_buffer)
+        np.save('ious/'+args.exp_name+'_ious.npy',iou_buffer)
+        np.save('rewards/'+args.exp_name+'_rewards.npy',reward_buffer)
         logging_file.close()
- 
+
+ENV_SDF_LOSS = 10.0
+ENV_DENSITY_LOSS = 10.0
+ENV_CONTACT_LOSS = 1.0
+ENV_SOFT_CONTACT_LOSS = False
+LOGGER_PATH = './tmp'
+
+if __name__ == '__main__':
+    taichi_env.init_taichi()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env_name", type=str, default="Move-v1")
+    mainArgs = parser.parse_args()
+    env = make(
+        mainArgs.env_name,
+        nn=False,
+        sdf_loss          = ENV_SDF_LOSS,
+        loss_fn           = ChamferLoss,
+        num_observable    = None,
+        density_loss      = ENV_DENSITY_LOSS,
+        contact_loss      = ENV_CONTACT_LOSS,
+        full_obs          = True,
+        soft_contact_loss = ENV_SOFT_CONTACT_LOSS
+    )
+    train_td3(env, LOGGER_PATH, Logger(LOGGER_PATH), mainArgs)
