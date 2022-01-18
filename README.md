@@ -37,15 +37,15 @@
 ### Simulation Transfer to Real Experiments
 #### Rope Experiment (The coordinate frame has been flipped to avoid occlusion)
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/rope_sim.gif"> 
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/rope_sim.gif"> 
 </div>
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/rope_real.gif"> 
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/rope_real.gif"> 
 </div>
 #### Chopsticks Experiment
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/chopsticks_sim.gif"> 
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/chopsticks_sim.gif"> 
 </div>
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/chopsticks_real.gif"> 
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/chopsticks_real.gif"> 
 </div>
