@@ -42,6 +42,7 @@
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/rope_real.gif"> 
 </div>
+
 #### Chopsticks Experiment
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/chopsticks_sim.gif"> 
