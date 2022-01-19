@@ -20,6 +20,11 @@
 #### Running State Representation learning using new dataset
 - Run `python3 plb.algorithms.solve --env_name [EnvName-version] --exp_name [EnvName-version] --exp_name learn_latent  --lr 1e-5` The encoder weight will be saved in `pretrained_model`
 
+## Environment Setup
+<div align="center">
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.gif"> 
+</div>
+
 ## Experiment result
 #### All experiment result are rendered from policy trained with MBPO
 - Picking up a rope
