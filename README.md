@@ -22,10 +22,10 @@
 
 ## Environment Setup
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.jpg"> 
+<img width="800px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.jpg"> 
 </div>
 
-## Experiment result
+## Simulation Experiment results
 #### All experiment result are rendered from policy trained with MBPO
 - Picking up a rope
 
@@ -39,7 +39,7 @@
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/DiffSRL-rope.gif"> 
 </div>
 
-### Simulation Transfer to Real Experiments
+### Real world Experiments Result
 #### Rope Experiment (The coordinate frame has been flipped to avoid occlusion)
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/rope_sim.gif"> 
