@@ -22,7 +22,7 @@
 
 ## Environment Setup
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.gif"> 
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.jpg"> 
 </div>
 
 ## Experiment result
