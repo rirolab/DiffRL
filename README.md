@@ -55,3 +55,12 @@
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/chopsticks_real.gif"> 
 </div>
+
+### More Simulated Experiment Result (Reward Curve)
+<div align="center">
+<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/OtherResults.gif"> 
+</div>
+
+
+
+
