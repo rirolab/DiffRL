@@ -58,7 +58,7 @@
 
 ### More Simulated Experiment Result (Reward Curve)
 <div align="center">
-<img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/OtherResults.jpg"> 
+<img width="800px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/OtherResults.jpg"> 
 </div>
 
 
