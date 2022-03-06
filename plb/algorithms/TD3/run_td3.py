@@ -177,8 +177,9 @@ def train_td3(env, path, logger, old_args):
                     ep_iou = 0
                     # Reset environment
                     state, done = env.reset(), False
-                    reward_buffer[iter,episode_num] = episode_reward
-                    iou_buffer[iter,episode_num] = episode_iou
+                    if episode_num < 1010:
+                        reward_buffer[iter,episode_num] = episode_reward
+                        iou_buffer[iter,episode_num] = episode_iou
                     episode_reward = 0
                     episode_iou = 0
                     episode_timesteps = 0
