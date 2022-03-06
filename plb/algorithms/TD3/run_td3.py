@@ -75,6 +75,7 @@ def parse_argument(externalArgs):
     if len(args.model_name) == 0 and externalArgs is not None and hasattr(externalArgs, 'model_name'):
         args.model_name = externalArgs.model_name
     args.discount = float(args.gamma)
+    return args
 
 
 def train_td3(env, path, logger, old_args):
@@ -212,7 +213,8 @@ if __name__ == '__main__':
     taichi_env.init_taichi()
     parser = argparse.ArgumentParser()
     parser.add_argument("--env_name", type=str, default="Move-v1")
-    mainArgs = parser.parse_args()
+    parse_argument(externalArgs = parser)
+    mainArgs, _ = parser.parse_known_args()
     env = make(
         mainArgs.env_name,
         nn=False,
