@@ -191,8 +191,9 @@ def train_td3(env, path, logger, old_args):
                         logging_file.writelines(output+'\n')
                         #np.save(f"./results/{file_name}", evaluations)
                         policy.save(log_path)
-    except:
-        error_msg = "iter:{},t:{}\n".format(iter,t)
+    except Exception as e:
+        error_msg = f"iter:{iter},t:{t} ===> {e}"
+        print(e)
         logging_file.writelines(error_msg)
     finally:
         if not os.path.exists("ious"):
