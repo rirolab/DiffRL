@@ -1,13 +1,15 @@
-import numpy as np
 import argparse
 import os
+import traceback
+
+import numpy as np
 
 from plb.algorithms.logger import Logger
 from plb.algorithms.TD3 import utils
 from plb.algorithms.TD3 import TD3
 from plb.engine import taichi_env
+from plb.engine.losses import Loss
 from plb.envs import make
-from plb.engine.losses.chamfer_loss import ChamferLoss
 
 
 # Runs policy for X episodes and returns average reward
@@ -193,7 +195,7 @@ def train_td3(env, path, logger, old_args):
                         policy.save(log_path)
     except Exception as e:
         error_msg = f"iter:{iter},t:{t} ===> {e}"
-        print(e)
+        traceback.print_exc()
         logging_file.writelines(error_msg)
     finally:
         if not os.path.exists("ious"):
@@ -220,7 +222,7 @@ if __name__ == '__main__':
         mainArgs.env_name,
         nn=False,
         sdf_loss          = ENV_SDF_LOSS,
-        loss_fn           = ChamferLoss,
+        loss_fn           = Loss,
         num_observable    = None,
         density_loss      = ENV_DENSITY_LOSS,
         contact_loss      = ENV_CONTACT_LOSS,
