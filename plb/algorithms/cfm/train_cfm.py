@@ -26,6 +26,18 @@ FORWARD_MODELS = {'E2C','InfoNCE','OriginInfoNCE','Forward'}
 INVERSE_MODELS = {'E2C','Inverse'}
 
 def _complexity_2_enum(complexity: int) -> ForwardModel.ComplexityLevel:
+    """ Convert the complexity integer to complexity enum object
+
+    Params
+    ------
+    complexity: 0 --- using MLP in forward models; 1 --- using
+        a smaller MLP in forward models; 2 --- using linear
+        model instead. Otherwise, pop an error
+
+    Return
+    ------
+    The complexity enum
+    """
     if complexity == 0: return ForwardModel.ComplexityLevel.MLP
     if complexity == 1: return ForwardModel.ComplexityLevel.SimpleMLP
     if complexity == 2: return ForwardModel.ComplexityLevel.Linear
@@ -33,6 +45,12 @@ def _complexity_2_enum(complexity: int) -> ForwardModel.ComplexityLevel:
     raise NotImplementedError("only 0, 1, 2 are supported")
 
 def _model_saving_path(lossType: str, dataset: str, complexity: Union[ForwardModel.ComplexityLevel, None] = None) -> str:
+    """ Format the saving path for the trained model
+
+    Returns
+    -------
+    pretrain_model/{cfm, inverse, e2c, forward}/{chopsticks, rope, ..., rope_smaller, ...}.pth
+    """
     lossTypeLower = lossType.lower()
     if lossTypeLower == 'inverse' or lossTypeLower == 'e2c' or lossTypeLower == 'forward':
         return os.path.join(PRETRAIN_MODEL, lossTypeLower, dataset, "encoder")
@@ -42,7 +60,7 @@ def _model_saving_path(lossType: str, dataset: str, complexity: Union[ForwardMod
         assert complexity is not None, \
             "For CFM encoder w/ InfoNCELoss, complexity MUST NOT BE NONE"
         if complexity == ForwardModel.ComplexityLevel.MLP:
-            complexityStr = "cfm"
+            complexityStr = "mlp"
         elif complexity == ForwardModel.ComplexityLevel.SimpleMLP:
             complexityStr = "smaller"
         else:
@@ -50,7 +68,28 @@ def _model_saving_path(lossType: str, dataset: str, complexity: Union[ForwardMod
         return os.path.join(PRETRAIN_MODEL, "cfm", f"{dataset}_{complexityStr}", encoder)
 
 
-def _preparation(datasetName: str, batchSize: int, complexity: ForwardModel.ComplexityLevel) -> Tuple[DataLoader, PCNEncoder, ForwardModel]:
+def _preparation(
+    datasetName: str,
+    batchSize: int,
+    complexity: ForwardModel.ComplexityLevel,
+    path4encoder: str = None
+) -> Tuple[DataLoader, PCNEncoder, ForwardModel, InverseModel]:
+    """ Prepare the models for training
+
+    Params
+    ------
+    datasetName: name of the dataset, the dataloader will be 
+        created accordingly
+    batchSize: batch size, another parameter for the dataloader
+    complexity: complexity enum of the forward model, i.e., using
+        a MLP, or a smaller MLP or simply a linear model here
+    path4encoder: optional, used when a pretrained model is needed,
+        the path to the pretrained model for the encoder
+
+    Returns
+    -------
+    (Dataloader, Encoder, Forward Model, Inverse Model)
+    """
     dataset = CFMDataset(datasetName) 
     dataloader = DataLoader(dataset, batch_size = batchSize)
 
@@ -62,27 +101,31 @@ def _preparation(datasetName: str, batchSize: int, complexity: ForwardModel.Comp
         latent_dim = LATENT_DIM
     ).to(device)
 
-    forwardModel = ForwardModel(
+    if path4encoder != None:
+        encoder.load_state_dict(torch.load(path4encoder))
+
+    forward_model = ForwardModel(
         latent_dim=LATENT_DIM,
         complexityLevel=complexity, 
         action_dim=nActions
     ).to(device)
 
-    inverseModel = InverseModel(
+    inverse_model = InverseModel(
         latent_dim=LATENT_DIM,
         action_dim=nActions).to(device)
 
-    return dataloader, encoder, forwardModel, inverseModel
+    return dataloader, encoder, forward_model, inverse_model
 
-def train(encoder:PCNEncoder,
-        forward_model:torch.nn.Module,
-        optimizer: torch.nn.Module,
-        dataloader:DataLoader,
-        loss_type,
-        forward_loss_fn: torch.nn.Module = None,
-        inverse_model: torch.nn.Module = None,
-        inverse_loss_fn: torch.nn.Module = None):
-
+def train(
+    encoder:PCNEncoder,
+    forward_model:torch.nn.Module,
+    optimizer: torch.nn.Module,
+    dataloader:DataLoader,
+    loss_type,
+    forward_loss_fn: torch.nn.Module = None,
+    inverse_model: torch.nn.Module = None,
+    inverse_loss_fn: torch.nn.Module = None
+):
     total_loss = 0
     batch_cnt = 0
     for state, target, action in dataloader:
@@ -117,6 +160,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_iters',  '-n', type=int, default=10)
     parser.add_argument('--loss',       '-l', type=str, default="InfoNCE", help="[InfoNCE / OriginInfoNCE / Forward / Inverse / E2C]")
     parser.add_argument('--complexity', '-c', type=int, default=0, help="0 --- MLP; 1 --- SmallerMLP; 2 --- Linear")
+    parser.add_argument('--encoder_path',               default=None, help="pretrained encoder path")
     args = parser.parse_args()
 
     if args.complexity is not 0:
@@ -124,7 +168,7 @@ if __name__ == '__main__':
 
     complexity = _complexity_2_enum(args.complexity)
 
-    dataloader, encoder, forward_model, inverse_model = _preparation(args.dataset, args.batch_size, complexity)
+    dataloader, encoder, forward_model, inverse_model = _preparation(args.dataset, args.batch_size, complexity, args.encoder_path)
 
     forward_loss_fn = None
     if args.loss != 'Inverse':
