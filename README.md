@@ -20,7 +20,12 @@
 #### Running State Representation learning using new dataset
 - Run `python3 plb.algorithms.solve --env_name [EnvName-version] --exp_name [EnvName-version] --exp_name learn_latent  --lr 1e-5` The encoder weight will be saved in `pretrained_model`
 
-## Experiment result
+## Environment Setup
+<div align="center">
+<img width="800px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/experiment_setup.jpg"> 
+</div>
+
+## Simulation Experiment results
 #### All experiment result are rendered from policy trained with MBPO
 - Picking up a rope
 
@@ -34,7 +39,7 @@
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/DiffSRL-rope.gif"> 
 </div>
 
-### Simulation Transfer to Real Experiments
+### Real world Experiments Result
 #### Rope Experiment (The coordinate frame has been flipped to avoid occlusion)
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/rope_sim.gif"> 
@@ -49,3 +54,12 @@
 <div align="center">
 <img width="300px" src="https://github.com/Ericcsr/DiffSRL/raw/main/Images/chopsticks_real.gif"> 
 </div>
+
+### More Simulated Experiment Result (Reward Curve)
+<div align="center">
+<img width="800px" src="https://github.com/Ericcsr/DiffSRL/raw/mpi_dev_eric/Images/OtherResults.jpg"> 
+</div>
+
+
+
+
