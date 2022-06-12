@@ -77,7 +77,7 @@ class TaichiEnv:
         elif mode == 'plt':
             import matplotlib.pyplot as plt
             plt.imshow(img)
-            plt.show()
+            plt.show(block=False)
         else:
             return img
 

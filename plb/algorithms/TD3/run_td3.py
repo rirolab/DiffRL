@@ -141,6 +141,7 @@ def train_td3(env, path, logger, old_args):
 
                 # Perform action
                 next_state, reward, done, info = env.step(action)
+                # env.render(mode='plt')
                 done_bool = float(done) if episode_timesteps < env._max_episode_steps else 0
 
                 ep_reward += reward
